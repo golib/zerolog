@@ -4,11 +4,12 @@ package journald_test
 
 import (
 	"bytes"
-	"github.com/rs/zerolog"
 	"io"
 	"testing"
+
+	"github.com/golib/zerolog"
+	"github.com/golib/zerolog/journald"
 )
-import "github.com/rs/zerolog/journald"
 
 func ExampleNewJournalDWriter() {
 	log := zerolog.New(journald.NewJournalDWriter())

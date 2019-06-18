@@ -1,4 +1,6 @@
-module github.com/rs/zerolog
+module github.com/golib/zerolog
+
+go 1.12
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e
