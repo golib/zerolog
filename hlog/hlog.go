@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rs/xid"
 	"github.com/golib/zerolog"
 	"github.com/golib/zerolog/log"
+	"github.com/rs/xid"
 	"github.com/zenazn/goji/web/mutil"
 )
 
