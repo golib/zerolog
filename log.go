@@ -396,6 +396,9 @@ func (l *Logger) newEvent(level Level, done func(string)) *Event {
 	}
 	if l.context != nil && len(l.context) > 0 {
 		e.buf = enc.AppendObjectData(e.buf, l.context)
+
+		// empty context
+		l.context = l.context[:0]
 	}
 	return e
 }
