@@ -606,6 +606,29 @@ func TestEvent_MsgWithFieldName(t *testing.T) {
 	}
 }
 
+func TestEvent_LogWithContext(t *testing.T) {
+	out := &bytes.Buffer{}
+	log := New(out).With().Str("foo", "bar").Logger().Hook(HookFunc(func(e *Event, l Level, msg string) {
+		e.Str("hook_key", "hook_value")
+	}))
+
+	log.Log().Msgf("foobar")
+
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"foo":"bar","hook_key":"hook_value","message":"foobar"}`+"\n"; got != want {
+		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
+	}
+
+	// it should reset context
+	out.Reset()
+
+	log = log.With().Str("bar", "foo").Logger()
+	log.Log().Msgf("barfoo")
+
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"bar":"foo","hook_key":"hook_value","message":"barfoo"}`+"\n"; got != want {
+		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
+	}
+}
+
 func TestOutputWithoutTimestamp(t *testing.T) {
 	ignoredOut := &bytes.Buffer{}
 	out := &bytes.Buffer{}
