@@ -241,8 +241,10 @@ func (l *Logger) UpdateContext(update func(c Context) Context) {
 	if cap(l.context) == 0 {
 		l.context = make([]byte, 0, 500)
 	}
+
 	c := update(Context{*l})
 	l.context = c.l.context
+	l.hooks = c.l.hooks
 }
 
 // Level creates a child logger with the minimum accepted level set to level.
