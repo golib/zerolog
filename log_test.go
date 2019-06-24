@@ -154,7 +154,7 @@ func TestFieldsMap(t *testing.T) {
 	}
 }
 
-func TestFieldsMapPnt(t *testing.T) {
+func TestFieldsMapPtr(t *testing.T) {
 	out := &bytes.Buffer{}
 	log := New(out)
 	log.Log().Fields(map[string]interface{}{
@@ -180,7 +180,7 @@ func TestFieldsMapPnt(t *testing.T) {
 	}
 }
 
-func TestFieldsMapNilPnt(t *testing.T) {
+func TestFieldsMapNilPtr(t *testing.T) {
 	var (
 		stringPnt  *string
 		boolPnt    *bool
@@ -571,7 +571,7 @@ func TestEventTimestamp(t *testing.T) {
 	}
 }
 
-func TestEvent_MsgWithFieldName(t *testing.T) {
+func TestEventMsgWithFieldName(t *testing.T) {
 	fieldName := "cost"
 	fieldValue, _ := time.Parse("2006-01-02T15:04:05", "2016-01-02T15:04:05")
 
@@ -584,7 +584,7 @@ func TestEvent_MsgWithFieldName(t *testing.T) {
 	}
 }
 
-func TestEvent_LogWithContext(t *testing.T) {
+func TestEventLogWithContext(t *testing.T) {
 	out := &bytes.Buffer{}
 	log := New(out).With().Str("foo", "bar").Logger().Hook(HookFunc(func(e *Event, l Level, msg string) {
 		e.Str("hook_key", "hook_value")
@@ -780,5 +780,15 @@ func TestErrorHandler(t *testing.T) {
 	log.Log().Msg("test")
 	if got != want {
 		t.Errorf("ErrorHandler err = %#v, want %#v", got, want)
+	}
+}
+
+func TestEventStack(t *testing.T) {
+	out := &bytes.Buffer{}
+
+	log := New(out)
+	log.Log().Stack().Err(errors.New("six")).Msg("error with stack")
+	if !strings.Contains(out.String(), "zerolog.TestEventStack(") {
+		t.Error("expect log contains stack info")
 	}
 }

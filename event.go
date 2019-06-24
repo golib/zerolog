@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -126,6 +127,9 @@ func (e *Event) msg(msg string) {
 				hook.Run(e, e.level, msg)
 			}
 		}
+	}
+	if e.stack {
+		e.Bytes(ErrorStackFieldName, debug.Stack())
 	}
 	if msg != "" {
 		e.buf = enc.AppendString(enc.AppendKey(e.buf, e.msgFieldName), msg)
@@ -331,17 +335,23 @@ func (e *Event) Err(err error) *Event {
 	if e == nil {
 		return e
 	}
-	if e.stack && ErrorStackMarshaler != nil {
-		switch m := ErrorStackMarshaler(err).(type) {
-		case nil:
-		case LogObjectMarshaler:
-			e.Object(ErrorStackFieldName, m)
-		case error:
-			e.Str(ErrorStackFieldName, m.Error())
-		case string:
-			e.Str(ErrorStackFieldName, m)
-		default:
-			e.Interface(ErrorStackFieldName, m)
+	if e.stack {
+		e.stack = false
+
+		if ErrorStackMarshaler != nil {
+			switch m := ErrorStackMarshaler(err).(type) {
+			case nil:
+			case LogObjectMarshaler:
+				e.Object(ErrorStackFieldName, m)
+			case error:
+				e.Str(ErrorStackFieldName, m.Error())
+			case string:
+				e.Str(ErrorStackFieldName, m)
+			default:
+				e.Interface(ErrorStackFieldName, m)
+			}
+		} else {
+			e.Bytes(ErrorStackFieldName, debug.Stack())
 		}
 	}
 	return e.AnErr(ErrorFieldName, err)
