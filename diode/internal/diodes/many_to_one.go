@@ -9,14 +9,14 @@ import (
 // ManyToOne diode is optimal for many writers (go-routines B-n) and a single
 // reader (go-routine A). It is not thread safe for multiple readers.
 type ManyToOne struct {
-	buffer     []unsafe.Pointer
 	writeIndex uint64
 	readIndex  uint64
+	buffer     []unsafe.Pointer
 	alerter    Alerter
 }
 
 // NewManyToOne creates a new diode (ring buffer). The ManyToOne diode
-// is optimzed for many writers (on go-routines B-n) and a single reader
+// is optimized for many writers (on go-routines B-n) and a single reader
 // (on go-routine A). The alerter is invoked on the read's go-routine. It is
 // called when it notices that the writer go-routine has passed it and wrote
 // over data. A nil can be used to ignore alerts.
@@ -66,7 +66,7 @@ func (d *ManyToOne) Set(data GenericDataType) {
 }
 
 // TryNext will attempt to read from the next slot of the ring buffer.
-// If there is not data available, it will return (nil, false).
+// If there is no data available, it will return (nil, false).
 func (d *ManyToOne) TryNext() (data GenericDataType, ok bool) {
 	// Read a value from the ring buffer based on the readIndex.
 	idx := d.readIndex % uint64(len(d.buffer))
@@ -80,7 +80,7 @@ func (d *ManyToOne) TryNext() (data GenericDataType, ok bool) {
 	}
 
 	// When the seq value is less than the current read index that means a
-	// value was read from idx that was previously written but has since has
+	// value was read from idx that was previously written but since has
 	// been dropped. This value must be ignored and the read head must not
 	// increment.
 	//

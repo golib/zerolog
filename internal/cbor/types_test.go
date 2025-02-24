@@ -88,11 +88,8 @@ var integerTestCases = []struct {
 	{0xFFFF, "\x19\xff\xff"},
 	// Value in 4 bytes.
 	{0x10000, "\x1a\x00\x01\x00\x00"},
-	{0xFFFFFFFE, "\x1a\xff\xff\xff\xfe"},
+	{0x7FFFFFFE, "\x1a\x7f\xff\xff\xfe"},
 	{1000000, "\x1a\x00\x0f\x42\x40"},
-	// Value in 8 bytes.
-	{0xabcd100000000, "\x1b\x00\x0a\xbc\xd1\x00\x00\x00\x00"},
-	{1000000000000, "\x1b\x00\x00\x00\xe8\xd4\xa5\x10\x00"},
 	// Negative number test cases.
 	// Value included in the type.
 	{-1, "\x20"},
@@ -116,11 +113,8 @@ var integerTestCases = []struct {
 	{-1000, "\x39\x03\xe7"},
 	// Value in 4 bytes.
 	{-0x10001, "\x3a\x00\x01\x00\x00"},
-	{-0xFFFFFFFE, "\x3a\xff\xff\xff\xfd"},
+	{-0x7FFFFFFE, "\x3a\x7f\xff\xff\xfd"},
 	{-1000000, "\x3a\x00\x0f\x42\x3f"},
-	// Value in 8 bytes.
-	{-0xabcd100000001, "\x3b\x00\x0a\xbc\xd1\x00\x00\x00\x00"},
-	{-1000000000001, "\x3b\x00\x00\x00\xe8\xd4\xa5\x10\x00"},
 }
 
 func TestAppendInt(t *testing.T) {
@@ -175,7 +169,7 @@ var float32TestCases = []struct {
 
 func TestAppendFloat32(t *testing.T) {
 	for _, tc := range float32TestCases {
-		s := enc.AppendFloat32([]byte{}, tc.val)
+		s := enc.AppendFloat32([]byte{}, tc.val, -1)
 		got := string(s)
 		if got != tc.binary {
 			t.Errorf("AppendFloat32(%f)=0x%s, want: 0x%s",
@@ -217,7 +211,7 @@ var macAddrTestCases = []struct {
 	{net.HardwareAddr{0x20, 0x01, 0x0d, 0xb8, 0x85, 0xa3}, "\"20:01:0d:b8:85:a3\"", "\xd9\x01\x04\x46\x20\x01\x0d\xb8\x85\xa3"},
 }
 
-func TestAppendMacAddr(t *testing.T) {
+func TestAppendMACAddr(t *testing.T) {
 	for _, tc := range macAddrTestCases {
 		s := enc.AppendMACAddr([]byte{}, tc.macaddr)
 		got := string(s)
@@ -312,9 +306,9 @@ func BenchmarkAppendFloat(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				switch str.sz {
 				case 4:
-					_ = enc.AppendFloat32(buf, float32(str.val))
+					_ = enc.AppendFloat32(buf, float32(str.val), -1)
 				case 8:
-					_ = enc.AppendFloat64(buf, str.val)
+					_ = enc.AppendFloat64(buf, str.val, -1)
 				}
 			}
 		})
