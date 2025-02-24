@@ -1,8 +1,10 @@
 package zerolog
 
 import (
+	"context"
 	"errors"
-	"io/ioutil"
+	"io"
+	"net"
 	"testing"
 	"time"
 )
@@ -13,7 +15,7 @@ var (
 )
 
 func BenchmarkLogEmpty(b *testing.B) {
-	logger := New(ioutil.Discard)
+	logger := New(io.Discard)
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -23,7 +25,7 @@ func BenchmarkLogEmpty(b *testing.B) {
 }
 
 func BenchmarkDisabled(b *testing.B) {
-	logger := New(ioutil.Discard).Level(Disabled)
+	logger := New(io.Discard).Level(Disabled)
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -33,7 +35,7 @@ func BenchmarkDisabled(b *testing.B) {
 }
 
 func BenchmarkInfo(b *testing.B) {
-	logger := New(ioutil.Discard)
+	logger := New(io.Discard)
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -43,7 +45,7 @@ func BenchmarkInfo(b *testing.B) {
 }
 
 func BenchmarkContextFields(b *testing.B) {
-	logger := New(ioutil.Discard).With().
+	logger := New(io.Discard).With().
 		Str("string", "four!").
 		Time("time", time.Time{}).
 		Int("int", 123).
@@ -58,7 +60,7 @@ func BenchmarkContextFields(b *testing.B) {
 }
 
 func BenchmarkContextAppend(b *testing.B) {
-	logger := New(ioutil.Discard).With().
+	logger := New(io.Discard).With().
 		Str("foo", "bar").
 		Logger()
 	b.ResetTimer()
@@ -70,7 +72,7 @@ func BenchmarkContextAppend(b *testing.B) {
 }
 
 func BenchmarkLogFields(b *testing.B) {
-	logger := New(ioutil.Discard)
+	logger := New(io.Discard)
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -100,7 +102,7 @@ func BenchmarkLogArrayObject(b *testing.B) {
 	obj1 := obj{"a", "b", 2}
 	obj2 := obj{"c", "d", 3}
 	obj3 := obj{"e", "f", 4}
-	logger := New(ioutil.Discard)
+	logger := New(io.Discard)
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
@@ -147,18 +149,19 @@ func BenchmarkLogFieldType(b *testing.B) {
 		{"a", "a", 0},
 	}
 	objects := []obj{
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
 	}
 	errs := []error{errors.New("a"), errors.New("b"), errors.New("c"), errors.New("d"), errors.New("e")}
+	ctx := context.Background()
 	types := map[string]func(e *Event) *Event{
 		"Bool": func(e *Event) *Event {
 			return e.Bool("k", bools[0])
@@ -190,6 +193,9 @@ func BenchmarkLogFieldType(b *testing.B) {
 		"Errs": func(e *Event) *Event {
 			return e.Errs("k", errs)
 		},
+		"Ctx": func(e *Event) *Event {
+			return e.Ctx(ctx)
+		},
 		"Time": func(e *Event) *Event {
 			return e.Time("k", times[0])
 		},
@@ -218,7 +224,7 @@ func BenchmarkLogFieldType(b *testing.B) {
 			return e.Object("k", objects[0])
 		},
 	}
-	logger := New(ioutil.Discard)
+	logger := New(io.Discard)
 	b.ResetTimer()
 	for name := range types {
 		f := types[name]
@@ -240,6 +246,7 @@ func BenchmarkContextFieldType(b *testing.B) {
 	ints := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	floats := []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	strings := []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"}
+	stringer := net.IP{127, 0, 0, 1}
 	durations := []time.Duration{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	times := []time.Time{
 		time.Unix(0, 0),
@@ -270,18 +277,19 @@ func BenchmarkContextFieldType(b *testing.B) {
 		{"a", "a", 0},
 	}
 	objects := []obj{
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
-		obj{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
+		{"a", "a", 0},
 	}
 	errs := []error{errors.New("a"), errors.New("b"), errors.New("c"), errors.New("d"), errors.New("e")}
+	ctx := context.Background()
 	types := map[string]func(c Context) Context{
 		"Bool": func(c Context) Context {
 			return c.Bool("k", bools[0])
@@ -307,11 +315,17 @@ func BenchmarkContextFieldType(b *testing.B) {
 		"Strs": func(c Context) Context {
 			return c.Strs("k", strings)
 		},
+		"Stringer": func(c Context) Context {
+			return c.Stringer("k", stringer)
+		},
 		"Err": func(c Context) Context {
 			return c.Err(errs[0])
 		},
 		"Errs": func(c Context) Context {
 			return c.Errs("k", errs)
+		},
+		"Ctx": func(c Context) Context {
+			return c.Ctx(ctx)
 		},
 		"Time": func(c Context) Context {
 			return c.Time("k", times[0])
@@ -344,7 +358,7 @@ func BenchmarkContextFieldType(b *testing.B) {
 			return c.Timestamp()
 		},
 	}
-	logger := New(ioutil.Discard)
+	logger := New(io.Discard)
 	b.ResetTimer()
 	for name := range types {
 		f := types[name]

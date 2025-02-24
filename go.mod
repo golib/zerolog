@@ -1,11 +1,16 @@
 module github.com/golib/zerolog
 
-go 1.12
+go 1.24.0
 
 require (
-	github.com/coreos/go-systemd v0.0.0-20190617083831-1652836e9bdc
-	github.com/pkg/errors v0.8.1
-	github.com/rs/xid v1.2.1
-	github.com/zenazn/goji v0.9.0
-	golang.org/x/tools v0.0.0-20190828213141-aed303cbaa74
+	github.com/coreos/go-systemd/v22 v22.5.0
+	github.com/mattn/go-colorable v0.1.14
+	github.com/pkg/errors v0.9.1
+	github.com/rs/xid v1.6.0
+	golang.org/x/tools v0.30.0
+)
+
+require (
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 )

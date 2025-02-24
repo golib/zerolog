@@ -72,7 +72,7 @@ func ExampleLogger_Hook() {
 	var levelNameHook LevelNameHook
 	var messageHook MessageHook = "The message"
 
-	log := zerolog.New(os.Stdout).Hook(levelNameHook).Hook(messageHook)
+	log := zerolog.New(os.Stdout).Hook(levelNameHook, messageHook)
 
 	log.Info().Msg("hello world")
 
@@ -93,6 +93,14 @@ func ExampleLogger_Printf() {
 	log.Printf("hello %s", "world")
 
 	// Output: {"level":"debug","message":"hello world"}
+}
+
+func ExampleLogger_Println() {
+	log := zerolog.New(os.Stdout)
+
+	log.Println("hello world")
+
+	// Output: {"level":"debug","message":"hello world\n"}
 }
 
 func ExampleLogger_Trace() {
@@ -238,11 +246,15 @@ func ExampleEvent_Array() {
 		Str("foo", "bar").
 		Array("array", zerolog.Arr().
 			Str("baz").
-			Int(1),
+			Int(1).
+			Dict(zerolog.Dict().
+				Str("bar", "baz").
+				Int("n", 1),
+			),
 		).
 		Msg("hello world")
 
-	// Output: {"foo":"bar","array":["baz",1],"message":"hello world"}
+	// Output: {"foo":"bar","array":["baz",1,{"bar":"baz","n":1}],"message":"hello world"}
 }
 
 func ExampleEvent_Array_object() {
@@ -307,7 +319,7 @@ func ExampleEvent_Interface() {
 }
 
 func ExampleEvent_Dur() {
-	d := time.Duration(10 * time.Second)
+	d := 10 * time.Second
 
 	log := zerolog.New(os.Stdout)
 
@@ -321,8 +333,8 @@ func ExampleEvent_Dur() {
 
 func ExampleEvent_Durs() {
 	d := []time.Duration{
-		time.Duration(10 * time.Second),
-		time.Duration(20 * time.Second),
+		10 * time.Second,
+		20 * time.Second,
 	}
 
 	log := zerolog.New(os.Stdout)
@@ -333,6 +345,38 @@ func ExampleEvent_Durs() {
 		Msg("hello world")
 
 	// Output: {"foo":"bar","durs":[10000,20000],"message":"hello world"}
+}
+
+func ExampleEvent_Fields_map() {
+	fields := map[string]interface{}{
+		"bar": "baz",
+		"n":   1,
+	}
+
+	log := zerolog.New(os.Stdout)
+
+	log.Log().
+		Str("foo", "bar").
+		Fields(fields).
+		Msg("hello world")
+
+	// Output: {"foo":"bar","bar":"baz","n":1,"message":"hello world"}
+}
+
+func ExampleEvent_Fields_slice() {
+	fields := []interface{}{
+		"bar", "baz",
+		"n", 1,
+	}
+
+	log := zerolog.New(os.Stdout)
+
+	log.Log().
+		Str("foo", "bar").
+		Fields(fields).
+		Msg("hello world")
+
+	// Output: {"foo":"bar","bar":"baz","n":1,"message":"hello world"}
 }
 
 func ExampleContext_Dict() {
@@ -424,7 +468,7 @@ func ExampleContext_Interface() {
 }
 
 func ExampleContext_Dur() {
-	d := time.Duration(10 * time.Second)
+	d := 10 * time.Second
 
 	log := zerolog.New(os.Stdout).With().
 		Str("foo", "bar").
@@ -438,8 +482,8 @@ func ExampleContext_Dur() {
 
 func ExampleContext_Durs() {
 	d := []time.Duration{
-		time.Duration(10 * time.Second),
-		time.Duration(20 * time.Second),
+		10 * time.Second,
+		20 * time.Second,
 	}
 
 	log := zerolog.New(os.Stdout).With().
@@ -474,7 +518,7 @@ func ExampleContext_IPPrefix() {
 	// Output: {"Route":"192.168.0.0/24","message":"hello world"}
 }
 
-func ExampleContext_MacAddr() {
+func ExampleContext_MACAddr() {
 	mac := net.HardwareAddr{0x00, 0x14, 0x22, 0x01, 0x23, 0x45}
 	log := zerolog.New(os.Stdout).With().
 		MACAddr("hostMAC", mac).
@@ -483,4 +527,36 @@ func ExampleContext_MacAddr() {
 	log.Log().Msg("hello world")
 
 	// Output: {"hostMAC":"00:14:22:01:23:45","message":"hello world"}
+}
+
+func ExampleContext_Fields_map() {
+	fields := map[string]interface{}{
+		"bar": "baz",
+		"n":   1,
+	}
+
+	log := zerolog.New(os.Stdout).With().
+		Str("foo", "bar").
+		Fields(fields).
+		Logger()
+
+	log.Log().Msg("hello world")
+
+	// Output: {"foo":"bar","bar":"baz","n":1,"message":"hello world"}
+}
+
+func ExampleContext_Fields_slice() {
+	fields := []interface{}{
+		"bar", "baz",
+		"n", 1,
+	}
+
+	log := zerolog.New(os.Stdout).With().
+		Str("foo", "bar").
+		Fields(fields).
+		Logger()
+
+	log.Log().Msg("hello world")
+
+	// Output: {"foo":"bar","bar":"baz","n":1,"message":"hello world"}
 }
