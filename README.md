@@ -10,7 +10,7 @@ Uber's [zap](https://godoc.org/go.uber.org/zap) library pioneered this approach.
 
 To keep the code base and the API simple, zerolog focuses on efficient structured logging only. Pretty logging on the console is made possible using the provided (but inefficient) [`zerolog.ConsoleWriter`](#pretty-logging).
 
-![Pretty Logging Image](pretty.png)
+![Pretty Logging Image](testdata/pretty.png)
 
 ## Who uses zerolog
 

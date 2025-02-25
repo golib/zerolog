@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -141,6 +142,9 @@ func (e *Event) MsgFunc(createMsg func() string) {
 func (e *Event) msg(msg string) {
 	for _, hook := range e.ch {
 		hook.Run(e, e.level, msg)
+	}
+	if e.stack {
+		e.Bytes(ErrorStackFieldName, debug.Stack())
 	}
 	if msg != "" {
 		e.buf = enc.AppendString(enc.AppendKey(e.buf, MessageFieldName), msg)
@@ -385,25 +389,31 @@ func (e *Event) Errs(key string, errs []error) *Event {
 // To customize the key name, change zerolog.ErrorFieldName.
 //
 // If Stack() has been called before and zerolog.ErrorStackMarshaler is defined,
-// the err is passed to ErrorStackMarshaler and the result is appended to the
+// The err is passed to ErrorStackMarshaler and the result is appended to the
 // zerolog.ErrorStackFieldName.
 func (e *Event) Err(err error) *Event {
 	if e == nil {
 		return e
 	}
-	if e.stack && ErrorStackMarshaler != nil {
-		switch m := ErrorStackMarshaler(err).(type) {
-		case nil:
-		case LogObjectMarshaler:
-			e.Object(ErrorStackFieldName, m)
-		case error:
-			if m != nil && !isNilValue(m) {
-				e.Str(ErrorStackFieldName, m.Error())
+	if e.stack {
+		e.stack = false
+
+		if ErrorStackMarshaler != nil {
+			switch m := ErrorStackMarshaler(err).(type) {
+			case nil:
+			case LogObjectMarshaler:
+				e.Object(ErrorStackFieldName, m)
+			case error:
+				if m != nil && !isNilValue(m) {
+					e.Str(ErrorStackFieldName, m.Error())
+				}
+			case string:
+				e.Str(ErrorStackFieldName, m)
+			default:
+				e.Interface(ErrorStackFieldName, m)
 			}
-		case string:
-			e.Str(ErrorStackFieldName, m)
-		default:
-			e.Interface(ErrorStackFieldName, m)
+		} else {
+			e.Bytes(ErrorStackFieldName, debug.Stack())
 		}
 	}
 	return e.AnErr(ErrorFieldName, err)
