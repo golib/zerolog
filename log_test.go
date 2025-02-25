@@ -725,6 +725,30 @@ func TestOutputWithoutTimestamp(t *testing.T) {
 	}
 }
 
+func TestEvent_LogWithContext(t *testing.T) {
+	out := &bytes.Buffer{}
+	log := New(out).Hook(HookFunc(func(e *Event, l Level, msg string) {
+		e.Str("hook_key", "hook_value")
+	}))
+
+	log = log.With().Str("foo", "bar").Logger()
+	log.Log().Msgf("foobar")
+
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"foo":"bar","hook_key":"hook_value","message":"foobar"}`+"\n"; got != want {
+		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
+	}
+
+	// it should reset context
+	out.Reset()
+
+	log = log.With().Str("bar", "foo").Logger()
+	log.Log().Msgf("barfoo")
+
+	if got, want := decodeIfBinaryToString(out.Bytes()), `{"bar":"foo","hook_key":"hook_value","message":"barfoo"}`+"\n"; got != want {
+		t.Errorf("invalid log output:\ngot:  %v\nwant: %v", got, want)
+	}
+}
+
 func TestOutputWithTimestamp(t *testing.T) {
 	TimestampFunc = func() time.Time {
 		return time.Date(2001, time.February, 3, 4, 5, 6, 7, time.UTC)

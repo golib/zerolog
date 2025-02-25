@@ -1,3 +1,4 @@
+//go:build !binary_log
 // +build !binary_log
 
 package zerolog
@@ -35,6 +36,17 @@ func TestEvent_AnErr(t *testing.T) {
 				t.Errorf("Event.AnErr() = %v, want %v", got, want)
 			}
 		})
+	}
+}
+
+func TestEvent_ErrWithStack(t *testing.T) {
+	out := &bytes.Buffer{}
+
+	log := New(out)
+	log.Log().Stack().Err(errors.New("six")).Msg("error with stack")
+
+	if !strings.Contains(out.String(), "zerolog.TestEvent_ErrWithStack(") {
+		t.Error("expect log contains stack info")
 	}
 }
 
